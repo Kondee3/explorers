@@ -1,12 +1,13 @@
 interface Props {
-    children: string;
+  children: string;
   onClick: () => void;
+  styles: string;
 }
-const FirstRowButton = ({ onClick, children }: Props) => {
+const FirstRowButton = ({ onClick, children, styles}: Props) => {
   return (
     <>
-      <th onClick={onClick}>
-                {children}
+      <th className={"firstRowButton " + styles} onClick={onClick}>
+        {children}
       </th>
     </>
   );

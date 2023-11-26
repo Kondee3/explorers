@@ -3,10 +3,12 @@ use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
 use std::fs;
 extern crate bytesize;
+extern crate open;
 #[cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_context_menu::init())
         .invoke_handler(tauri::generate_handler![get_files, open_file, sort_files])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -38,11 +40,12 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
         _ => println!("empty list"),
     };
 
-    if do_reverse {
+    let files = if do_reverse {
         files.into_iter().rev().collect()
     } else {
         files
-    }
+    };
+    files
 }
 #[tauri::command]
 fn get_files(filename: String) -> Vec<File> {
@@ -74,7 +77,6 @@ fn get_files(filename: String) -> Vec<File> {
     files
 }
 #[tauri::command]
-fn open_file(name: String) {
-    print!("\nścieżka{}\n", name);
-    let open = fs::File::open(name);
+fn open_file(file: File) {
+    open::that(file.path);
 }

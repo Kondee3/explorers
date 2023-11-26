@@ -1,3 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -16,7 +19,6 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -36,7 +38,7 @@
 
 .row {
   display: flex;
-  justify-content: center;
+  justify-content: start;
 }
 
 a {
@@ -66,13 +68,17 @@ button {
   transition: border-color 0.25s;
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
+.firstRowButton:hover{
+    backdrop-filter: contrast(20%);
+    cursor: pointer;
+}
 
 button {
   cursor: pointer;
 }
 
 button:hover {
-  border-color: #396cd8;
+  border-color: #e8e8e8;
 }
 button:active {
   border-color: #396cd8;
@@ -81,6 +87,7 @@ button:active {
 
 input,
 button {
+    margin: 0.1em;
   outline: none;
 }
 
@@ -113,12 +120,15 @@ width: 100%;
     border-collapse: collapse;
     
 }
+.previous-dir{
+    filter: contrast(0%);
+}
 th{
     text-align: left;
     border-bottom: 1px solid;
 
 }
-tr:hover{
-    background-color: darkgray;
+.otherRowButton:hover{
+    backdrop-filter: contrast(20%);
     cursor: pointer;
 }

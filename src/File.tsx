@@ -6,12 +6,12 @@ export interface FileObject {
 }
 interface Props {
   file: FileObject;
-    onClick: (e: any) => Promise<void>;
+    onClick: () => void;
 }
 
 const File = ({ file, onClick }: Props) => {
   return (
-    <tr onClick={onClick}>
+    <tr className="otherRowButton" onClick={onClick}>
       <th>{file.name}</th>
       <th>{file.file_type}</th>
       <th>{file.size}</th>
