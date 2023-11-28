@@ -1,15 +1,35 @@
 use bytesize::ByteSize;
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::ffi::OsStr;
 use std::fs;
+use tauri::{LogicalSize, Manager, WindowEvent};
 extern crate bytesize;
 extern crate open;
-#[cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#[cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
 fn main() {
     tauri::Builder::default()
+        .setup(|app| {
+            let main_window = app.get_window("main").unwrap();
+            main_window.set_min_size(Some(LogicalSize {
+                width: 386,
+                height: 400,
+            }))?;
+            Ok(())
+        })
+        .on_window_event(|e| {
+            if let WindowEvent::Resized(_) = e.event() {
+                std::thread::sleep(std::time::Duration::from_nanos(1));
+            }
+        })
         .plugin(tauri_plugin_context_menu::init())
-        .invoke_handler(tauri::generate_handler![get_files, open_file, sort_files])
+        .invoke_handler(tauri::generate_handler![
+            get_files, open_file, sort_files, find_file
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -48,8 +68,27 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
     files
 }
 #[tauri::command]
-fn get_files(filename: String) -> Vec<File> {
-    let paths = fs::read_dir(filename).unwrap();
+fn find_file(file_name: &str, path: &str) -> Vec<File> {
+    let files = get_files(path.to_string());
+    let mut filtered_list: Vec<File> = vec![];
+    for file in files {
+        if file.file_type == "Folder" {
+            filtered_list.append(&mut find_file(file_name, &file.path));
+        }
+        if file.name.contains(file_name) {
+            filtered_list.push(file);
+        }
+    }
+    filtered_list
+}
+
+#[tauri::command]
+fn get_files(path: String) -> Vec<File> {
+    let paths = if path == "" {
+        fs::read_dir(env!("HOME", "HOME variable not set")).unwrap()
+    } else {
+        fs::read_dir(path).unwrap()
+    };
     let mut files = paths
         .filter_map(|entry| {
             entry.ok().and_then(|e| {
@@ -67,7 +106,6 @@ fn get_files(filename: String) -> Vec<File> {
                             .to_path_buf()
                             .display()
                             .to_string(),
-                        //path: e.path().into_os_string().into_string().unwrap(),
                     })
                 })
             })
@@ -78,5 +116,5 @@ fn get_files(filename: String) -> Vec<File> {
 }
 #[tauri::command]
 fn open_file(file: File) {
-    open::that(file.path);
+    let _ = open::that(file.path);
 }

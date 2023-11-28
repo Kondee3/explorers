@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "yarn dev",
-    "beforeBuildCommand": "yarn build",
+    "beforeDevCommand": "npx tailwindcss build -i ./src/styles.css -o ./dist/output.css && yarn dev",
+    "beforeBuildCommand": "npx tailwindcss build -i ./src/styles.css -o ./dist/output.css && yarn build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },
