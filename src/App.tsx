@@ -25,27 +25,28 @@ function App() {
   const [path, setPath] = useState("");
   const [doReverse, setDoReverse] = useState(true);
   async function getFiles() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setFiles(await invoke("get_files", { path }));
   }
   async function openFile(file: FileObject) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     await invoke("open_file", { file });
   }
   async function sortFiles(columnName: string) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setFiles(await invoke("sort_files", { files, columnName, doReverse }));
     setDoReverse(!doReverse);
   }
   async function findFile() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setFiles(await invoke("find_file", { fileName, path }));
+  }
+  async function getUpperDir() {
+    setFiles(await invoke("get_upper_dir", { path }));
+    setPath(await invoke("get_upper_dir_path", {path}));
   }
 
   return (
     <div className="container flex flex-col">
+      <label>{path}</label>
       <div className="row flex">
-        <button>
+        <button onClick={getUpperDir}>
           <img
             src="https://static.thenounproject.com/png/4149528-200.png"
             className="contrast-0"

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::ffi::OsStr;
 use std::fs;
+use std::path::Path;
 use tauri::{LogicalSize, Manager, WindowEvent};
 extern crate bytesize;
 extern crate open;
@@ -28,7 +29,12 @@ fn main() {
         })
         .plugin(tauri_plugin_context_menu::init())
         .invoke_handler(tauri::generate_handler![
-            get_files, open_file, sort_files, find_file
+            get_files,
+            open_file,
+            sort_files,
+            find_file,
+            get_upper_dir,
+            get_upper_dir_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -81,7 +87,20 @@ fn find_file(file_name: &str, path: &str) -> Vec<File> {
     }
     filtered_list
 }
+#[tauri::command]
+fn get_upper_dir(path: &str) -> Vec<File> {
+    get_files(get_upper_dir_path(path))
+}
 
+#[tauri::command]
+fn get_upper_dir_path(path: &str) -> String {
+    Path::new(path)
+        .parent()
+        .unwrap()
+        .to_path_buf()
+        .display()
+        .to_string()
+}
 #[tauri::command]
 fn get_files(path: String) -> Vec<File> {
     let paths = if path == "" {
