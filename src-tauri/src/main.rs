@@ -1,3 +1,4 @@
+use async_recursion::async_recursion;
 use bytesize::ByteSize;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -16,8 +17,9 @@ fn main() {
     tauri::Builder::default()
         .setup(|app| {
             let main_window = app.get_window("main").unwrap();
+
             main_window.set_min_size(Some(LogicalSize {
-                width: 386,
+                width: 660,
                 height: 400,
             }))?;
             Ok(())
@@ -27,7 +29,6 @@ fn main() {
                 std::thread::sleep(std::time::Duration::from_nanos(1));
             }
         })
-        .plugin(tauri_plugin_context_menu::init())
         .invoke_handler(tauri::generate_handler![
             get_files,
             open_file,
@@ -74,18 +75,19 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
     files
 }
 #[tauri::command]
-fn find_file(file_name: &str, path: &str) -> Vec<File> {
-    let files = get_files(path.to_string());
+#[async_recursion]
+async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
     let mut filtered_list: Vec<File> = vec![];
+    let files = get_files(path.to_string());
     for file in files {
         if file.file_type == "Folder" {
-            filtered_list.append(&mut find_file(file_name, &file.path));
+            filtered_list.append(&mut find_file(file_name, &file.path).await.unwrap());
         }
         if file.name.contains(file_name) {
             filtered_list.push(file);
         }
     }
-    filtered_list
+    Ok(filtered_list)
 }
 #[tauri::command]
 fn get_upper_dir(path: &str) -> Vec<File> {
@@ -120,11 +122,7 @@ fn get_files(path: String) -> Vec<File> {
                             String::from(s),
                         ),
                         size: format!("{:?}", ByteSize(e.metadata().unwrap().len())),
-                        path: fs::canonicalize(e.path())
-                            .unwrap()
-                            .to_path_buf()
-                            .display()
-                            .to_string(),
+                        path: fs::canonicalize(e.path()).unwrap().display().to_string(),
                     })
                 })
             })

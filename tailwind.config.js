@@ -7,7 +7,7 @@ export default {
         20: ".20",
       },
       colors: {
-        backtable: "#0f0f0f",
+        backtable: "#2f2f2f",
       },
     },
   },

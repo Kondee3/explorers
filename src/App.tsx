@@ -3,22 +3,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import File from "./File";
 import { FileObject } from "./File";
 import FirstRowButton from "./FirstRowButton";
-/*
-import { onEventShowMenu } from "tauri-plugin-context-menu";
-onEventShowMenu("contextmenu", () => ({
-  items: [
-    {
-      label: "New",
-      subitems: [
-        {
-          label: "Folder",
-          event: "createFolderEvent",
-        },
-      ],
-    },
-  ],
-}));
-*/
+import { WebviewWindow } from "@tauri-apps/api/window";
 function App() {
   const [files, setFiles] = useState([]);
   const [fileName, setFileName] = useState("");
@@ -39,13 +24,18 @@ function App() {
   }
   async function getUpperDir() {
     setFiles(await invoke("get_upper_dir", { path }));
-    setPath(await invoke("get_upper_dir_path", {path}));
+    setPath(await invoke("get_upper_dir_path", { path }));
+  }
+  function openFileOrFolder(file: FileObject) {
+    if (file.file_type == "Folder") {
+      setPath(file.path);
+      getFiles();
+    } else openFile(file);
   }
 
   return (
-    <div className="container flex flex-col">
-      <label>{path}</label>
-      <div className="row flex">
+    <div onLoad={getFiles} className="container flex flex-col ">
+      <div className="flex ">
         <button onClick={getUpperDir}>
           <img
             src="https://static.thenounproject.com/png/4149528-200.png"
@@ -63,31 +53,37 @@ function App() {
         >
           <input
             onChange={(e) => setPath(e.currentTarget.value)}
-            placeholder="Enter a filename..."
+            placeholder="Enter a path"
+            value={path}
           />
         </form>
         <form
-          className="flex"
+          className="flex absolute right-0"
           onSubmit={(e) => {
             e.preventDefault();
-            findFile();
+            if (fileName != "") {
+              findFile();
+            } else {
+              getFiles();
+            }
           }}
         >
-          <input
-            onChange={(e) => setFileName(e.currentTarget.value)}
-            placeholder="Enter a filename..."
-          />
+            <input
+              onChange={(e) => setFileName(e.currentTarget.value)}
+              placeholder="Enter a filename"
+            >
+            </input>
+            <button>
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/49/49116.png"
+                className="contrast-0"
+                width="30"
+                height="30"
+              />
+            </button>
         </form>
-        <button>
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/49/49116.png"
-            className="contrast-0"
-            width="30"
-            height="30"
-          />
-        </button>
       </div>
-      <table className="mt-2 bg-backtable rounded-md table-auto">
+      <table className="mt-2 bg-backtable table-fixed rounded-md ">
         <thead>
           <tr>
             <FirstRowButton
@@ -108,16 +104,17 @@ function App() {
           </tr>
         </thead>
         <tbody>
+          {files.length == 0 &&
+            (
+              <tr>
+                No Files
+              </tr>
+            )}
           {files.map((f: FileObject, id: number) => {
             return (
               <File
                 file={f}
-                onClick={() => {
-                  if (f.file_type == "Folder") {
-                    setPath(f.path);
-                    getFiles();
-                  } else openFile(f);
-                }}
+                onClick={() => openFileOrFolder(f)}
                 key={id}
               />
             );

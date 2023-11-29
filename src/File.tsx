@@ -12,7 +12,7 @@ interface Props {
 const File = ({ file, onClick}: Props) => {
   return (
     <tr className="hover:backdrop-contrast-20 hover:cursor-pointer border-none text-left " onClick={onClick}>
-      <th>{file.name}</th>
+      <th className="whitespace-nowrap max-w-md truncate ">{file.name}</th>
       <th>{file.file_type}</th>
       <th>{file.size}</th>
     </tr>
