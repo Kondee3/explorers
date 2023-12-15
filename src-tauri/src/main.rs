@@ -67,7 +67,7 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
         _ => println!("empty list"),
     };
 
-    let files = if do_reverse {
+    files = if do_reverse {
         files.into_iter().rev().collect()
     } else {
         files
@@ -78,8 +78,7 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
 #[async_recursion]
 async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
     let mut filtered_list: Vec<File> = vec![];
-    let files = get_files(path.to_string());
-    for file in files {
+    for file in get_files(path.to_string()) {
         if file.file_type == "Folder" {
             filtered_list.append(&mut find_file(file_name, &file.path).await.unwrap());
         }
@@ -89,6 +88,7 @@ async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
     }
     Ok(filtered_list)
 }
+
 #[tauri::command]
 fn get_upper_dir(path: &str) -> Vec<File> {
     get_files(get_upper_dir_path(path))
@@ -105,7 +105,7 @@ fn get_upper_dir_path(path: &str) -> String {
 }
 #[tauri::command]
 fn get_files(path: String) -> Vec<File> {
-    let paths = if path == "" {
+    let paths = if path.is_empty() {
         fs::read_dir(env!("HOME", "HOME variable not set")).unwrap()
     } else {
         fs::read_dir(path).unwrap()

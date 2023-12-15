@@ -3,7 +3,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import File from "./File";
 import { FileObject } from "./File";
 import FirstRowButton from "./FirstRowButton";
-import { WebviewWindow } from "@tauri-apps/api/window";
 function App() {
   const [files, setFiles] = useState([]);
   const [fileName, setFileName] = useState("");
