@@ -35,7 +35,6 @@ fn main() {
             sort_files,
             find_file,
             get_upper_dir,
-            get_upper_dir_path
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -78,7 +77,7 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
 #[async_recursion]
 async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
     let mut filtered_list: Vec<File> = vec![];
-    for file in get_files(path.to_string()) {
+    for file in get_files(path.to_string()).file_vec {
         if file.file_type == "Folder" {
             filtered_list.append(&mut find_file(file_name, &file.path).await.unwrap());
         }
@@ -90,11 +89,10 @@ async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
 }
 
 #[tauri::command]
-fn get_upper_dir(path: &str) -> Vec<File> {
+fn get_upper_dir(path: &str) -> FilesWithPath {
     get_files(get_upper_dir_path(path))
 }
 
-#[tauri::command]
 fn get_upper_dir_path(path: &str) -> String {
     Path::new(path)
         .parent()
@@ -103,13 +101,19 @@ fn get_upper_dir_path(path: &str) -> String {
         .display()
         .to_string()
 }
+#[derive(Serialize, Deserialize, Ord, Eq, PartialEq, PartialOrd)]
+struct FilesWithPath {
+    file_vec: Vec<File>,
+    path_dir: String,
+}
 #[tauri::command]
-fn get_files(path: String) -> Vec<File> {
-    let paths = if path.is_empty() {
-        fs::read_dir(env!("HOME", "HOME variable not set")).unwrap()
+fn get_files(folder_path: String) -> FilesWithPath {
+    let path_to_read = if folder_path.is_empty() {
+        env!("HOME", "HOME variable not set")
     } else {
-        fs::read_dir(path).unwrap()
+        &folder_path
     };
+    let paths = fs::read_dir(path_to_read).unwrap();
     let mut files = paths
         .filter_map(|entry| {
             entry.ok().and_then(|e| {
@@ -129,7 +133,10 @@ fn get_files(path: String) -> Vec<File> {
         })
         .collect::<Vec<File>>();
     files.sort();
-    files
+    FilesWithPath {
+        file_vec: files,
+        path_dir: path_to_read.to_string(),
+    }
 }
 #[tauri::command]
 fn open_file(file: File) {
