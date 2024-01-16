@@ -15,11 +15,10 @@ function App() {
   const [doReverse, setDoReverse] = useState(true);
 
   async function getFiles(folderPath: string) {
-    let res: FilesWithPath = await invoke("get_files", { folderPath});
+    let res: FilesWithPath = await invoke("get_files", { folderPath });
     console.log(res);
     setFilesAndPath(res);
   }
-
 
   async function getUpperDir() {
     setFilesAndPath(await invoke("get_upper_dir", { path }));
@@ -29,8 +28,8 @@ function App() {
     setFiles(res.file_vec);
     setPath(res.path_dir);
   }
-  async function openFile(file: FileObject) {
-    await invoke("open_file", { file });
+  async function openFile(filePath: string): Promise<string> {
+    return await invoke("open_file", { filePath });
   }
 
   async function sortFiles(columnName: string) {
@@ -39,13 +38,16 @@ function App() {
   }
 
   async function findFile() {
-    setFiles(await invoke("find_file", { fileName, path }));
+    let out: FileObject[] = await invoke("find_file", { fileName, path });
+    console.log(out);
+    setFiles(out);
   }
 
   function openFileOrFolder(file: FileObject) {
     if (file.file_type == "Folder") {
-      getFiles(path +"/" +file.name);
-    } else openFile(file);
+      getFiles(file.path);
+            
+    } else openFile(file.path).then((s: string) => console.log(s));
   }
 
   return (
@@ -84,18 +86,12 @@ function App() {
           }}
         >
           <input
-            onChange={(e) => setFileName(e.currentTarget.value)}
+            onChange={(e) => {
+              setFileName(e.currentTarget.value);
+            }}
             placeholder="Enter a filename"
           >
           </input>
-          <button>
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/49/49116.png"
-              className="contrast-0"
-              width="30"
-              height="30"
-            />
-          </button>
         </form>
       </div>
       <table className="mt-2 bg-backtable table-fixed rounded-md ">

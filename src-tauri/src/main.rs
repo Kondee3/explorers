@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use async_recursion::async_recursion;
 use bytesize::ByteSize;
 use serde::{Deserialize, Serialize};
@@ -8,11 +9,6 @@ use std::path::Path;
 use tauri::{LogicalSize, Manager, WindowEvent};
 extern crate bytesize;
 extern crate open;
-#[cfg_attr(
-    all(not(debug_assertions), target_os = "windows"),
-    windows_subsystem = "windows"
-)]
-
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -73,7 +69,7 @@ fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Ve
     };
     files
 }
-#[tauri::command]
+#[tauri::command(async)]
 #[async_recursion]
 async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
     let mut filtered_list: Vec<File> = vec![];
@@ -89,17 +85,15 @@ async fn find_file(file_name: &str, path: &str) -> Result<Vec<File>, ()> {
 }
 
 #[tauri::command]
-fn get_upper_dir(path: &str) -> FilesWithPath {
+fn get_upper_dir(path: String) -> FilesWithPath {
     get_files(get_upper_dir_path(path))
 }
 
-fn get_upper_dir_path(path: &str) -> String {
-    Path::new(path)
-        .parent()
-        .unwrap()
-        .to_path_buf()
-        .display()
-        .to_string()
+fn get_upper_dir_path(path: String) -> String {
+    match Path::new(&path).parent() {
+        Some(p) => p.to_path_buf().display().to_string(),
+        None => path.to_string(),
+    }
 }
 #[derive(Serialize, Deserialize, Ord, Eq, PartialEq, PartialOrd)]
 struct FilesWithPath {
@@ -114,6 +108,7 @@ fn get_files(folder_path: String) -> FilesWithPath {
         &folder_path
     };
     let paths = fs::read_dir(path_to_read).unwrap();
+
     let mut files = paths
         .filter_map(|entry| {
             entry.ok().and_then(|e| {
@@ -126,7 +121,7 @@ fn get_files(folder_path: String) -> FilesWithPath {
                             String::from(s),
                         ),
                         size: format!("{:?}", ByteSize(e.metadata().unwrap().len())),
-                        path: fs::canonicalize(e.path()).unwrap().display().to_string(),
+                        path: e.path().display().to_string(),
                     })
                 })
             })
@@ -139,6 +134,8 @@ fn get_files(folder_path: String) -> FilesWithPath {
     }
 }
 #[tauri::command]
-fn open_file(file: File) {
-    let _ = open::that(file.path);
+fn open_file(file_path: String) -> String {
+    //let _ = open::that(file_path);
+    let file = fs::read_to_string(file_path).unwrap();
+    file
 }
