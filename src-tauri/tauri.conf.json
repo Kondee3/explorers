@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "explorers_v2",
+  "version": "0.1.0",
+  "identifier": "com.explorersv2.app",
+  "build": {
+    "beforeDevCommand": "npx tailwindcss build -i ./src/styles.css -o ./dist/output.css && bun run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npx tailwindcss build -i ./src/styles.css -o ./dist/output.css && bun run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 600,
+        "resizable": true,
+        "title": "explorers",
+        "width": 800,
+      "minWidth": 800,
+    "minHeight": 600}
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}
