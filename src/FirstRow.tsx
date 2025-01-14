@@ -5,7 +5,7 @@ interface Props {
 }
 const FirstRow = ({ sortFunction }: Props) => {
   return (
-    <tr>
+    <tr className="">
       <FirstRowButton children="Name" onClick={() => sortFunction("name")} />
       <FirstRowButton
         children="Type"

@@ -35,7 +35,8 @@ struct File {
     name: String,
     is_folder: bool,
     file_type: String,
-    size: String,
+    #[serde(with = "bytesize_serde")]
+    size: ByteSize,
     path: String,
 }
 
@@ -51,8 +52,10 @@ fn from_extension(x: Option<&OsStr>, is_dir: bool, name: String) -> String {
 #[tauri::command]
 fn sort_files(mut files: Vec<File>, column_name: String, do_reverse: bool) -> Vec<File> {
     match column_name.as_str() {
-        "name" => files.sort_by(|a, b| a.name.cmp(&b.name)),
-        "file_type" => files.sort_by(|a, b| a.file_type.cmp(&b.file_type)),
+        "name" => files.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase())),
+        "file_type" => {
+            files.sort_by(|a, b| a.file_type.to_lowercase().cmp(&b.file_type.to_lowercase()))
+        }
         "size" => files.sort_by(|a, b| a.size.cmp(&b.size)),
         "path" => files.sort_by(|a, b| a.path.cmp(&b.path)),
         _ => println!("empty list"),
@@ -127,7 +130,7 @@ fn get_files(folder_path: String) -> FilesWithPath {
                                 e.metadata().unwrap().is_dir(),
                                 String::from(s),
                             ),
-                            size: format!("{:?}", ByteSize(e.metadata().unwrap().len())),
+                            size: ByteSize(e.metadata().unwrap().len()),
                             path: e.path().display().to_string(),
                         })
                     })

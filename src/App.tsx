@@ -48,7 +48,7 @@ const App = () => {
 
   return (
     <div onLoad={() => getFiles(path)} className="container flex flex-col ">
-      <div className="flex mt-2">
+      <div className="flex fixed z-10 my-2">
         <button onClick={getUpperDir}>
           <img
             src="https://static.thenounproject.com/png/4149528-200.png"
@@ -90,8 +90,12 @@ const App = () => {
         </form>
       </div>
 
-      <div>
-        <table className="table-fixed gap-0 mt-2 col-span-1  w-11/12 border rounded-md  inline inline-1 inline-gray-500 overflow-hidden absolute left-1/2 transform -translate-x-1/2">
+      <div className="z-0 mt-20">
+        
+        <table className="table-fixed  gap-0  col-span-1  w-11/12 border rounded-md  inline inline-1 inline-gray-500 overflow-hidden absolute left-1/2 transform -translate-x-1/2">
+          <div id="table-title" className="hover:cursor-move border-b">
+                <label className="text-center" >{path}</label>
+          </div>
           <thead>
             <FirstRow sortFunction={sortFiles} />
           </thead>
