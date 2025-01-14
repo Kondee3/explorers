@@ -12,6 +12,7 @@ extern crate open;
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_shell::init())
         .on_window_event(|w, event| {
             if let WindowEvent::Resized(_) = event {
@@ -98,12 +99,22 @@ struct FilesWithPath {
 #[tauri::command]
 fn get_files(folder_path: String) -> FilesWithPath {
     let path_to_read = if folder_path.is_empty() {
-        env!("userprofile", "HOME variable not set")
+        let platform = tauri_plugin_os::platform();
+        let x = if platform.to_string() == "linux".to_string() {
+            std::env::var("HOME")
+                .unwrap_or("HOME variable not set!".to_string())
+                .to_string()
+        } else {
+            std::env::var("userprofile")
+                .unwrap_or("userprofile variable not set!".to_string())
+                .to_string()
+        };
+        x
     } else {
-        &folder_path
+        folder_path
     };
 
-    let mut files = match fs::read_dir(path_to_read) {
+    let mut files = match fs::read_dir(path_to_read.clone()) {
         Ok(paths) => paths
             .filter_map(|entry| {
                 entry.ok().and_then(|e| {

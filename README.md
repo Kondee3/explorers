@@ -11,7 +11,7 @@ An explorer app made in Tauri framework.
 
 ## Platforms
 - Windows ✅
-- Linux ⚠️
+- Linux ✅
 - Mobile ⚠️
 ## Development 
  ```
